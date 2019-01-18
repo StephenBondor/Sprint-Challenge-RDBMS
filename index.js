@@ -2,8 +2,8 @@ const express = require('express');
 const helmet = require('helmet');
 const knex = require('knex');
 const knexConfig = require('./knexfile.js');
-const morgan = require('morgan')
-// const dbAccess = require('./helpers.js');
+const morgan = require('morgan');
+const dbAccess = require('./helpers.js');
 
 const server = express();
 
@@ -38,10 +38,32 @@ server.post('/api/:table', (req, res) => {
 //list whatever by ID
 server.get('/api/:table/:id', (req, res) => {
 	const {id, table} = req.params;
-	db(table)
-		.where({id})
-		.then(thing => {
-			res.status(200).json(thing);
+	if (table === 'projects') {
+		console.log('check pass');
+		dbAccess
+			.getProject(id)
+			.then(thing => {
+				console.log(thing);
+				res.status(200).json(thing);
+			})
+			.catch(err => {
+				console.log(err);
+				res.status(500).json(err);
+			});
+	} else {
+		db(table)
+			.where({id})
+			.then(thing => {
+				res.status(200).json(thing);
+			})
+			.catch(err => res.status(500).json(err));
+	}
+});
+
+server.get('/api/:table', (req, res) => {
+	db(req.params.table)
+		.then(things => {
+			res.status(200).json(things);
 		})
 		.catch(err => res.status(500).json(err));
 });
